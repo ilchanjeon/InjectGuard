@@ -119,3 +119,56 @@ async def chat(request: ChatRequest) -> ChatResponse:
         reason=decision.reason,
         detection_time_ms=detection_time_ms,
     )
+
+
+@app.post("/chat/raw", response_model=ChatResponse)
+async def chat_raw(request: ChatRequest) -> ChatResponse:
+    """Baseline endpoint that calls Gemini without InjectGuard filtering."""
+    started_at = perf_counter()
+
+    audit_record = {
+        "status": "raw_allowed",
+        "reason": "raw_baseline_no_filter",
+        "rule_score": 0.0,
+        "embedding_score": 0.0,
+        "matched_pattern": None,
+        "detection_time_ms": 0.0,
+    }
+
+    try:
+        llm_response = await request_llm(request.message)
+    except LLMClientError as error:
+        write_audit_log({**audit_record, "status": "raw_llm_config_error"})
+        raise HTTPException(
+            status_code=503,
+            detail=str(error),
+        ) from error
+    except httpx.HTTPStatusError as error:
+        write_audit_log(
+            {
+                **audit_record,
+                "status": "raw_llm_api_error",
+                "http_status": error.response.status_code,
+            }
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Gemini API가 요청을 거부했습니다. API 키와 모델명을 확인하세요.",
+        ) from error
+    except httpx.HTTPError as error:
+        write_audit_log({**audit_record, "status": "raw_llm_error"})
+        raise HTTPException(
+            status_code=502,
+            detail="Gemini API 호출에 실패했습니다.",
+        ) from error
+
+    elapsed_ms = (perf_counter() - started_at) * 1000
+    write_audit_log({**audit_record, "response_time_ms": elapsed_ms})
+    return ChatResponse(
+        status="raw_allowed",
+        response=llm_response,
+        rule_score=0.0,
+        embedding_score=0.0,
+        reason="raw_baseline_no_filter",
+        detection_time_ms=0.0,
+    )
