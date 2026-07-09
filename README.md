@@ -53,25 +53,25 @@ Audit Log (.jsonl)
 
 ### 1. 프로젝트 이동
 
-```powershell
-cd "C:\Users\User\OneDrive\바탕 화면\InjectGuard"
+```powershell or terminal
+cd "프로젝트 경로\InjectGuard"
 ```
 
 ### 2. 가상환경 활성화
 
-```powershell
+```powershell or terminal
 .\.venv\Scripts\Activate.ps1
 ```
 
 ### 3. 환경 변수 생성
 
-```powershell
+```powershell or terminal
 Copy-Item .env.example .env
 ```
 
 ### 4. Ollama 모델 다운로드
 
-```powershell
+```powershell or terminal
 ollama pull llama3.2:3b
 ```
 
@@ -79,7 +79,7 @@ ollama pull llama3.2:3b
 
 ## 서버 실행
 
-```powershell
+```powershell or terminal
 uvicorn app.main:app --reload
 ```
 
@@ -97,7 +97,7 @@ http://127.0.0.1:8000/docs
 
 ## 테스트 실행
 
-```powershell
+```powershell or terminal
 pytest
 ```
 
