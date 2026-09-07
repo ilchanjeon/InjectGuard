@@ -1,10 +1,10 @@
-## 🛡️ InjectGuard
+## InjectGuard
 
 > **LLM 기반 서비스에서 프롬프트 인젝션(Prompt Injection) 공격을 탐지하고 차단하는 FastAPI 기반 보안 필터링 시스템**
 
 ---
 
-### 📌 프로젝트 소개
+### 프로젝트 소개
 
 InjectGuard는 LLM 서비스로 전달되는 사용자 입력을 사전에 분석하여
 프롬프트 인젝션 공격을 탐지하고 차단하는 보안 게이트웨이입니다.
@@ -14,18 +14,18 @@ InjectGuard는 LLM 서비스로 전달되는 사용자 입력을 사전에 분�
 
 ---
 
-### ✨ 주요 기능
+### 주요 기능
 
-- 🔍 입력 전처리 (Input Preprocessing)
-- 📏 규칙 기반 프롬프트 인젝션 탐지
-- 🧠 임베딩 유사도 기반 공격 탐지
-- ⚖️ 탐지 결과 통합 및 차단 정책 적용
-- 🤖 Ollama LLM 연동
-- 📝 JSON Lines(.jsonl) 형식 감사 로그(Audit Log)
+- 입력 전처리 (Input Preprocessing)
+- 규칙 기반 프롬프트 인젝션 탐지
+- 임베딩 유사도 기반 공격 탐지
+- 탐지 결과 통합 및 차단 정책 적용
+- Ollama LLM 연동 or 외부 LLM model API
+- JSON Lines(.jsonl) 형식 감사 로그(Audit Log)
 
 ---
 
-### 🏗️ 시스템 구조
+### 시스템 구조
 
 ```text
 User
@@ -49,37 +49,37 @@ Audit Log (.jsonl)
 
 ---
 
-## 🚀 실행 준비
+## 실행 준비
 
 ### 1. 프로젝트 이동
 
-```powershell
-cd "C:\Users\User\OneDrive\바탕 화면\InjectGuard"
+```powershell or terminal
+cd "프로젝트 경로\InjectGuard"
 ```
 
 ### 2. 가상환경 활성화
 
-```powershell
+```powershell or terminal
 .\.venv\Scripts\Activate.ps1
 ```
 
 ### 3. 환경 변수 생성
 
-```powershell
+```powershell or terminal
 Copy-Item .env.example .env
 ```
 
 ### 4. Ollama 모델 다운로드
 
-```powershell
+```powershell or terminal
 ollama pull llama3.2:3b
 ```
 
 ---
 
-## ▶️ 서버 실행
+## 서버 실행
 
-```powershell
+```powershell or terminal
 uvicorn app.main:app --reload
 ```
 
@@ -95,15 +95,15 @@ http://127.0.0.1:8000/docs
 
 ---
 
-## ✅ 테스트 실행
+## 테스트 실행
 
-```powershell
+```powershell or terminal
 pytest
 ```
 
 ---
 
-## 📡 API 예시
+## API 예시
 
 ### 정상 요청
 
@@ -139,7 +139,7 @@ pytest
 
 ---
 
-## 📂 감사 로그
+## 감사 로그
 
 모든 요청은 JSON Lines 형식으로 저장됩니다.
 
@@ -159,7 +159,7 @@ logs/
 
 ---
 
-## 🛠️ 기술 스택
+## 기술 스택
 
 | 분야 | 기술 |
 |------|------|
@@ -172,6 +172,6 @@ logs/
 
 ---
 
-## 📄 라이선스
+## 라이선스
 
 본 프로젝트는 학술 연구 및 교육 목적으로 개발되었습니다.
