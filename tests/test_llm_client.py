@@ -1,4 +1,4 @@
-from app.llm_client import _extract_output_text
+from app.response.llm_client import _extract_output_text
 
 
 def test_extract_output_text() -> None:
