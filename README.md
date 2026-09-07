@@ -10,7 +10,7 @@ InjectGuard는 LLM 서비스로 전달되는 사용자 입력을 사전에 분�
 프롬프트 인젝션 공격을 탐지하고 차단하는 보안 게이트웨이입니다.
 
 규칙 기반 탐지와 임베딩 유사도 기반 탐지를 함께 사용하여
-정상 요청과 공격 요청을 구분하며, 안전한 요청만 LLM(Ollama)으로 전달합니다.
+정상 요청과 공격 요청을 구분하며, 안전한 요청만 LLM(Google Gemini)으로 전달합니다.
 
 ---
 
@@ -19,33 +19,44 @@ InjectGuard는 LLM 서비스로 전달되는 사용자 입력을 사전에 분�
 - 입력 전처리 (Input Preprocessing)
 - 규칙 기반 프롬프트 인젝션 탐지
 - 임베딩 유사도 기반 공격 탐지
-- 탐지 결과 통합 및 차단 정책 적용
-- Ollama LLM 연동 or 외부 LLM model API
+- 탐지 결과 통합 및 위험도 기반 대응 정책
+- Google Gemini 연동 (외부 LLM API로 교체 가능)
 - JSON Lines(.jsonl) 형식 감사 로그(Audit Log)
+- 평가 하니스 — 탐지 성능 측정 및 임계값 튜닝
 
 ---
 
 ### 시스템 구조
 
+세 모듈이 명시적 데이터 계약으로 연결됩니다.
+
 ```text
 User
   │
   ▼
-Input Preprocessing
+[필터모듈]  app/filtering/
+  └── 정규화 · 정제 → FilterResult
   │
   ▼
-Security Filter
+[탐지모듈]  app/detection/
  ├── Rule-based Detection
  ├── Embedding Similarity Detection
- │
- ▼
-Decision Module
- ├── Safe    → Ollama LLM
- └── Blocked → Response 반환
- │
- ▼
+ └── → DetectionResult
+  │
+  ▼
+[대응모듈]  app/response/
+ ├── ALLOW    → Gemini LLM
+ ├── SANITIZE → 무해화 후 전달
+ └── BLOCK    → 차단 응답 반환
+  │
+  ▼
 Audit Log (.jsonl)
 ```
+
+오케스트레이션은 `app/pipeline.py`가 담당하며 두 진입점을 제공합니다.
+
+- `analyze()` — 필터·탐지·정책까지. LLM을 호출하지 않아 평가 하니스가 배치로 실행할 수 있습니다.
+- `handle()` — `analyze()` + LLM 호출. `/chat` 엔드포인트가 사용합니다.
 
 ---
 
@@ -69,10 +80,13 @@ cd "프로젝트 경로\InjectGuard"
 Copy-Item .env.example .env
 ```
 
-### 4. Ollama 모델 다운로드
+### 4. Gemini API 키 설정
 
-```powershell or terminal
-ollama pull llama3.2:3b
+[Google AI Studio](https://aistudio.google.com/apikey)에서 API 키를 발급받아
+`.env` 파일의 `GEMINI_API_KEY` 항목에 입력합니다.
+
+```
+GEMINI_API_KEY=발급받은_키
 ```
 
 ---
@@ -116,7 +130,7 @@ pytest
 #### 결과
 
 ```text
-→ Ollama LLM으로 전달
+→ Gemini LLM으로 전달
 ```
 
 ---
@@ -150,12 +164,17 @@ logs/
 
 로그에는 다음 정보가 기록됩니다.
 
-- 요청 시간
-- 입력 메시지
-- 탐지 결과
-- 탐지 방식
-- 차단 여부
-- 위험도 점수
+- 요청 시각 (`timestamp`)
+- 요청 ID (`request_id`) — uuid4
+- 입력 메시지 (`message`) — `AUDIT_LOG_MESSAGE=false`이면 SHA-256 해시(`message_sha256`)만 기록
+- 위험도 (`risk_level`) — low / medium / high
+- 대응 조치 (`action`) — allow / sanitize / block
+- 종합 위험 점수 (`risk_score`)
+- 탐지기별 점수 (`signals`) — rule / embedding
+- 매치된 패턴 (`matched_pattern`)
+- 필터 통계 (`filter_stats`)
+- 단계별 소요 시간 (`timings`) — filter / rule / embedding
+- 설정 버전 (`config_version`) — 실험 조건 식별자
 
 ---
 
@@ -164,7 +183,7 @@ logs/
 | 분야 | 기술 |
 |------|------|
 | Backend | FastAPI |
-| LLM | Ollama (Llama 3.2) |
+| LLM | Google Gemini (gemini-2.5-flash) |
 | Embedding | Sentence Transformers |
 | Detection | Rule-based + Embedding Similarity |
 | Logging | JSON Lines |
