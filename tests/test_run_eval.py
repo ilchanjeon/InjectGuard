@@ -52,7 +52,7 @@ def test_write_report_creates_expected_files(tmp_path) -> None:
     assert (out_dir / "metrics.csv").exists()
     assert (out_dir / "summary.md").exists()
     assert (out_dir / "config.json").exists()
-    # roc.png는 Task 15에서 sweep 연결과 함께 추가된다
+    assert (out_dir / "roc.png").exists()
 
 
 def test_predictions_csv_has_all_rows(tmp_path) -> None:

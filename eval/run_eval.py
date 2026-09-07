@@ -143,6 +143,27 @@ def write_report(
         "분해 지표는 `metrics.csv`, 개별 예측은 `predictions.csv` 참조.",
         "",
     ]
+
+    from eval.sweep import best_threshold, write_roc_curve
+
+    try:
+        write_roc_curve(predictions, out_dir / "roc.png")
+        tuned_threshold, tuned = best_threshold(predictions, metric="f1")
+    except ValueError:
+        # 한쪽 클래스만 있으면 ROC를 그릴 수 없다
+        tuned_threshold, tuned = threshold, overall
+
+    summary.extend(
+        [
+            "## 임계값 스윕",
+            "",
+            f"- F1 최대 임계값: {tuned_threshold:.2f}",
+            f"- 그때의 TPR: {tuned.tpr:.4f}, FPR: {tuned.fpr:.4f}, F1: {tuned.f1:.4f}",
+            f"- 현재 설정({threshold}) 대비 F1 변화: {tuned.f1 - overall.f1:+.4f}",
+            "",
+        ]
+    )
+
     (out_dir / "summary.md").write_text("\n".join(summary), encoding="utf-8")
 
     (out_dir / "config.json").write_text(
