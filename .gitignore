@@ -6,3 +6,5 @@ logs/
 .pytest_cache/
 .idea/
 .vscode/
+
+eval/reports/
